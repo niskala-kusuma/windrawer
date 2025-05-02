@@ -1,0 +1,58 @@
+{
+  "shortcuts": [
+    {
+      "label": "Notepad",
+      "path": "C:/Windows/System32/notepad.exe",
+      "category": "Apps",
+      "group": "Editors"
+    },
+    {
+      "label": "Calculator",
+      "path": "C:/Windows/System32/calc.exe",
+      "category": "Apps",
+      "group": "Utilities"
+    },
+    {
+      "label": "Documents",
+      "path": "C:\\Users\\Niskala/Documents",
+      "category": "Folders",
+      "group": "System Folders"
+    },
+    {
+      "label": "Downloads",
+      "path": "C:\\Users\\Niskala/Downloads",
+      "category": "Folders",
+      "group": "System Folders"
+    },
+    {
+      "label": "Google",
+      "path": "https://www.google.com",
+      "category": "Web",
+      "group": "Search"
+    },
+    {
+      "label": "GitHub",
+      "path": "https://github.com",
+      "category": "Web",
+      "group": "Development"
+    },
+    {
+      "label": "\"deepseek",
+      "path": "https://deepseek.com",
+      "category": "Web",
+      "group": "Development"
+    },
+    {
+      "label": "Google",
+      "path": "https://google.com",
+      "category": "Web",
+      "group": "development"
+    }
+  ],
+  "settings": {
+    "theme": "light",
+    "grid_columns": 4,
+    "window_width": 800,
+    "window_height": 600
+  }
+}

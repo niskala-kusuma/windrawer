@@ -1,33 +1,29 @@
-"""
-WinDrawer - Lightweight Windows app launcher.
-Main entry point for the application.
-"""
 import os
 import sys
-from pathlib import Path
-
-# Add the project root directory to the path for imports
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-# Import application modules
 from drawer.logic.json_handler import JSONHandler
 from drawer.ui.theme import ThemeManager
 from drawer.ui.app import AppWindow
 
-
 def main():
     """Main entry point for the application."""
-    # Initialize data handler
-    json_handler = JSONHandler()
+    # Get the base directory of the application
+    if getattr(sys, 'frozen', False):
+        # If running as a bundled executable
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        # If running as a script
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
-    # Initialize theme manager
-    theme_manager = ThemeManager(json_handler)
+    # Set up data directory
+    data_dir = os.path.join(base_dir, "data")
     
-    # Create and run main application window
+    # Initialize components
+    json_handler = JSONHandler(data_dir)
+    theme_manager = ThemeManager()
+    
+    # Create and run the main window
     app = AppWindow(json_handler, theme_manager)
-    app.mainloop()
-
+    app.run()
 
 if __name__ == "__main__":
     main()

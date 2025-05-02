@@ -1,223 +1,379 @@
-"""
-Main application window for WinDrawer.
-Handles the UI layout and shortcut display.
-"""
 import os
 import subprocess
 import webbrowser
+import tkinter as tk
 import customtkinter as ctk
+from tkinter import filedialog
+import tkinter.messagebox as messagebox
+import platform
 from PIL import Image
+import sys
+import os.path
 
-
-class AppWindow(ctk.CTk):
-    """Main application window class."""
-    
+class AppWindow:
     def __init__(self, json_handler, theme_manager):
-        """
-        Initialize the main application window.
-        
-        Args:
-            json_handler: Instance of JSONHandler to load shortcuts.
-            theme_manager: Instance of ThemeManager for theme handling.
-        """
-        super().__init__()
-        
         self.json_handler = json_handler
         self.theme_manager = theme_manager
-        self.shortcuts = self.json_handler.get_shortcuts()
+        
+        # Load settings from JSON
         self.settings = self.json_handler.get_settings()
+        self.grid_columns = self.settings.get("grid_columns", 4)
         
-        # Configure window
-        self.title("WinDrawer")
-        self.geometry(f"{self.settings['window_size'][0]}x{self.settings['window_size'][1]}")
-        self.minsize(400, 300)
+        # Apply theme from settings
+        self.theme_manager.set_theme(self.settings.get("theme", "light"))
         
-        # Bind window close event
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        # Initialize main window
+        self.root = ctk.CTk()
+        self.root.title("WinDrawer")
+        self.root.geometry(f"{self.settings.get('window_width', 800)}x{self.settings.get('window_height', 600)}")
+        self.root.minsize(600, 400)
         
-        # Track icon references to prevent garbage collection
-        self.icon_references = []
+        # Set up the main frame with scroll capability
+        self.main_container = ctk.CTkFrame(self.root, corner_radius=0)
+        self.main_container.pack(fill=tk.BOTH, expand=True)
         
-        # Create main frame
-        self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        # Create a canvas for scrolling
+        self.canvas = ctk.CTkCanvas(self.main_container, bg=self.theme_manager.get_color("bg_color"), highlightthickness=0)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # Create menu frame (top)
-        self.create_menu_frame()
+        # Add scrollbar
+        self.scrollbar = ctk.CTkScrollbar(self.main_container, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
         
-        # Create shortcuts grid (center)
-        self.create_shortcuts_grid()
-    
-    def create_menu_frame(self):
-        """Create the menu frame with theme toggle and other options."""
-        menu_frame = ctk.CTkFrame(self.main_frame)
-        menu_frame.pack(fill="x", padx=5, pady=5)
+        # Create frame inside canvas for content
+        self.scrollable_frame = ctk.CTkFrame(self.canvas, corner_radius=0)
+        self.canvas_frame = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        
+        # Configure scroll region when frame size changes
+        self.scrollable_frame.bind("<Configure>", self.on_frame_configure)
+        self.canvas.bind("<Configure>", self.on_canvas_configure)
+        
+        # Create header frame
+        self.header_frame = ctk.CTkFrame(self.scrollable_frame)
+        self.header_frame.pack(fill=tk.X, padx=10, pady=10)
         
         # App title
-        title_label = ctk.CTkLabel(
-            menu_frame, 
+        self.title_label = ctk.CTkLabel(
+            self.header_frame, 
             text="WinDrawer", 
-            font=ctk.CTkFont(size=16, weight="bold")
+            font=ctk.CTkFont(size=24, weight="bold")
         )
-        title_label.pack(side="left", padx=10)
+        self.title_label.pack(side=tk.LEFT, padx=10)
         
         # Theme toggle button
-        theme_text = "🌙 Dark" if self.theme_manager.get_current_theme() == "light" else "☀️ Light"
         self.theme_button = ctk.CTkButton(
-            menu_frame,
-            text=theme_text,
-            width=100,
-            command=self.toggle_theme
+            self.header_frame,
+            text="Toggle Theme",
+            command=self.toggle_theme,
+            width=120
         )
-        self.theme_button.pack(side="right", padx=10)
+        self.theme_button.pack(side=tk.RIGHT, padx=10)
+        
+        # Add shortcut button
+        self.add_button = ctk.CTkButton(
+            self.header_frame,
+            text="Add Shortcut",
+            command=self.toggle_add_shortcut_form,
+            width=120
+        )
+        self.add_button.pack(side=tk.RIGHT, padx=10)
+        
+        # Create add shortcut form frame (initially hidden)
+        self.add_form_visible = False
+        self.add_form_frame = ctk.CTkFrame(self.scrollable_frame)
+        
+        # Form elements
+        self.form_title = ctk.CTkLabel(
+            self.add_form_frame,
+            text="Add New Shortcut",
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        self.form_title.grid(row=0, column=0, columnspan=3, padx=10, pady=(10, 20), sticky="w")
+        
+        # Label input
+        ctk.CTkLabel(self.add_form_frame, text="Label:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        self.label_entry = ctk.CTkEntry(self.add_form_frame, width=200)
+        self.label_entry.grid(row=1, column=1, padx=10, pady=5, sticky="w")
+        
+        # Path input
+        ctk.CTkLabel(self.add_form_frame, text="Path:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        self.path_entry = ctk.CTkEntry(self.add_form_frame, width=200)
+        self.path_entry.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        self.browse_button = ctk.CTkButton(
+            self.add_form_frame, 
+            text="Browse", 
+            command=self.browse_path,
+            width=80
+        )
+        self.browse_button.grid(row=2, column=2, padx=10, pady=5)
+        
+        # Category input
+        ctk.CTkLabel(self.add_form_frame, text="Category:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        self.category_var = ctk.StringVar(value="Apps")
+        self.category_dropdown = ctk.CTkOptionMenu(
+            self.add_form_frame,
+            values=["Apps", "Folders", "Web"],
+            variable=self.category_var,
+            width=200
+        )
+        self.category_dropdown.grid(row=3, column=1, padx=10, pady=5, sticky="w")
+        
+        # Group input
+        ctk.CTkLabel(self.add_form_frame, text="Group:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        self.group_entry = ctk.CTkEntry(self.add_form_frame, width=200)
+        self.group_entry.insert(0, "Default")
+        self.group_entry.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+        
+        # Form buttons
+        self.form_buttons_frame = ctk.CTkFrame(self.add_form_frame, fg_color="transparent")
+        self.form_buttons_frame.grid(row=5, column=0, columnspan=3, padx=10, pady=(20, 10), sticky="e")
+        
+        self.cancel_button = ctk.CTkButton(
+            self.form_buttons_frame,
+            text="Cancel",
+            command=self.toggle_add_shortcut_form,
+            fg_color=self.theme_manager.get_color("cancel_button"),
+            hover_color=self.theme_manager.get_color("cancel_hover"),
+            width=100
+        )
+        self.cancel_button.pack(side=tk.RIGHT, padx=5)
+        
+        self.save_button = ctk.CTkButton(
+            self.form_buttons_frame,
+            text="Save",
+            command=self.save_shortcut,
+            width=100
+        )
+        self.save_button.pack(side=tk.RIGHT, padx=5)
+        
+        # Create content area for shortcuts
+        self.content_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
+        self.content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Fill the window with shortcuts
+        self.refresh_shortcuts()
+        
+        # Handle window close event
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def on_frame_configure(self, event):
+        """Update the scrollregion when the frame size changes"""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
+    def on_canvas_configure(self, event):
+        """Resize the canvas window when the canvas changes size"""
+        self.canvas.itemconfig(self.canvas_frame, width=event.width)
     
-    def create_shortcuts_grid(self):
-        """Create the grid of shortcut buttons."""
-        self.grid_frame = ctk.CTkFrame(self.main_frame)
-        self.grid_frame.pack(fill="both", expand=True, padx=5, pady=5)
-        
-        # Calculate grid dimensions
-        grid_size = self.settings.get("grid_size", [3, 2])
-        cols, rows = grid_size
-        
-        # Configure grid
-        for i in range(rows):
-            self.grid_frame.grid_rowconfigure(i, weight=1)
-        for i in range(cols):
-            self.grid_frame.grid_columnconfigure(i, weight=1)
-        
-        # Add shortcuts to grid
-        for i, shortcut in enumerate(self.shortcuts):
-            # Calculate row and column
-            row = i // cols
-            col = i % cols
-            
-            # Create shortcut button
-            shortcut_button = self.create_shortcut_button(shortcut)
-            shortcut_button.grid(
-                row=row, 
-                column=col, 
-                padx=10, 
-                pady=10, 
-                sticky="nsew"
-            )
-    
-    def create_shortcut_button(self, shortcut):
-        """
-        Create a button for a shortcut.
-        
-        Args:
-            shortcut (dict): Shortcut data with label, path, and category.
-        
-        Returns:
-            CTkButton: Button widget for the shortcut.
-        """
-        # Determine button color based on category
-        category_colors = {
-            "Apps": "#3a7ebf",
-            "Folders": "#388e3c",
-            "Web": "#d32f2f",
-            "Tools": "#7b1fa2"
-        }
-        
-        # Get default color for the category or use a fallback
-        category = shortcut.get("category", "Others")
-        color = category_colors.get(category, "#616161")
-        
-        # Add an icon based on type
-        icon_text = ""
-        path = shortcut.get("path", "")
-        if path.startswith(("http://", "https://")):
-            icon_text = "🌐 "
-        elif os.path.exists(path) and os.path.isdir(path):
-            icon_text = "📁 "
+    def toggle_add_shortcut_form(self):
+        """Show or hide the add shortcut form"""
+        if self.add_form_visible:
+            self.add_form_frame.pack_forget()
+            self.content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            self.add_form_visible = False
+            self.add_button.configure(text="Add Shortcut")
         else:
-            icon_text = "📌 "
-        
-        button = ctk.CTkButton(
-            self.grid_frame,
-            text=f"{icon_text}{shortcut['label']}",
-            height=80,
-            corner_radius=8,
-            fg_color=color,
-            hover_color=self.darken_color(color),
-            command=lambda: self.open_shortcut(shortcut)
-        )
-        
-        return button
+            self.content_frame.pack_forget()
+            self.add_form_frame.pack(fill=tk.X, padx=10, pady=10, after=self.header_frame)
+            self.content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            self.add_form_visible = True
+            self.add_button.configure(text="Close Form")
+            
+            # Clear form fields
+            self.label_entry.delete(0, tk.END)
+            self.path_entry.delete(0, tk.END)
+            self.category_var.set("Apps")
+            self.group_entry.delete(0, tk.END)
+            self.group_entry.insert(0, "Default")
     
-    def open_shortcut(self, shortcut):
-        """
-        Open the shortcut (app, folder, or URL).
+    def browse_path(self):
+        """Open file or folder browser"""
+        category = self.category_var.get()
         
-        Args:
-            shortcut (dict): Shortcut data with path.
-        """
-        path = shortcut.get("path", "")
-        if not path:
-            print("Error: Shortcut has no path")
+        if category == "Apps":
+            path = filedialog.askopenfilename(
+                title="Select Application",
+                filetypes=[("Executable files", "*.exe"), ("All files", "*.*")]
+            )
+        elif category == "Folders":
+            path = filedialog.askdirectory(title="Select Folder")
+        else:  # Web category doesn't need a file browser
             return
             
-        try:
-            # Handle URLs
-            if path.startswith(("http://", "https://")):
-                webbrowser.open(path)
-            # Handle files and folders
-            elif os.path.exists(path):
-                if os.path.isdir(path):
-                    # Open folder
-                    os.startfile(path)
-                else:
-                    # Open file
-                    os.startfile(path)
-            else:
-                print(f"Path does not exist: {path}")
-        except Exception as e:
-            print(f"Error opening shortcut: {e}")
+        if path:
+            self.path_entry.delete(0, tk.END)
+            self.path_entry.insert(0, path)
+    
+    def save_shortcut(self):
+        """Save the new shortcut to the JSON file"""
+        label = self.label_entry.get().strip()
+        path = self.path_entry.get().strip()
+        category = self.category_var.get()
+        group = self.group_entry.get().strip() or "Default"
+        
+        # Validation
+        if not label:
+            messagebox.showerror("Error", "Label cannot be empty")
+            return
+            
+        if not path:
+            messagebox.showerror("Error", "Path cannot be empty")
+            return
+            
+        # For web shortcuts, add https:// if no protocol is specified
+        if category == "Web" and not (path.startswith("http://") or path.startswith("https://")):
+            path = "https://" + path
+        
+        # Add the shortcut
+        self.json_handler.add_shortcut({
+            "label": label,
+            "path": path,
+            "category": category,
+            "group": group
+        })
+        
+        # Refresh the shortcuts display
+        self.toggle_add_shortcut_form()
+        self.refresh_shortcuts()
     
     def toggle_theme(self):
-        """Toggle between light and dark themes."""
-        new_theme = self.theme_manager.toggle_theme()
+        """Toggle between light and dark theme"""
+        current_theme = self.theme_manager.get_current_theme()
+        new_theme = "dark" if current_theme == "light" else "light"
+        self.theme_manager.set_theme(new_theme)
         
-        # Update theme button text
-        theme_text = "🌙 Dark" if new_theme == "light" else "☀️ Light"
-        self.theme_button.configure(text=theme_text)
+        # Update the JSON with the new theme setting
+        self.settings["theme"] = new_theme
+        self.json_handler.save_settings(self.settings)
         
-        # Refresh UI elements
-        self.update_idletasks()
+        # Update canvas background color
+        self.canvas.configure(bg=self.theme_manager.get_color("bg_color"))
+        
+        # Update cancel button color
+        self.cancel_button.configure(
+            fg_color=self.theme_manager.get_color("cancel_button"),
+            hover_color=self.theme_manager.get_color("cancel_hover")
+        )
+    
+    def open_shortcut(self, path, category):
+        """Open the shortcut based on its category"""
+        try:
+            if category == "Web":
+                webbrowser.open(path)
+            elif category == "Folders":
+                if os.path.exists(path):
+                    if platform.system() == "Windows":
+                        os.startfile(path)
+                    elif platform.system() == "Darwin":  # macOS
+                        subprocess.call(["open", path])
+                    else:  # Linux
+                        subprocess.call(["xdg-open", path])
+                else:
+                    messagebox.showerror("Error", f"Folder not found: {path}")
+            else:  # Apps
+                if os.path.exists(path):
+                    if platform.system() == "Windows":
+                        os.startfile(path)
+                    else:
+                        subprocess.Popen([path])
+                else:
+                    messagebox.showerror("Error", f"Application not found: {path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open {path}: {str(e)}")
+    
+    def refresh_shortcuts(self):
+        """Refresh the shortcuts display"""
+        # Clear existing shortcuts
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+        
+        # Get all shortcuts grouped by 'group'
+        grouped_shortcuts = self.json_handler.get_shortcuts_by_group()
+        
+        # No shortcuts message if needed
+        if not grouped_shortcuts:
+            no_shortcuts_label = ctk.CTkLabel(
+                self.content_frame,
+                text="No shortcuts found. Click 'Add Shortcut' to create one.",
+                font=ctk.CTkFont(size=14)
+            )
+            no_shortcuts_label.pack(pady=50)
+            return
+        
+        # Create a frame for each group
+        row = 0
+        for group_name, shortcuts in grouped_shortcuts.items():
+            # Create a frame for this group
+            group_frame = ctk.CTkFrame(self.content_frame)
+            group_frame.pack(fill=tk.X, pady=(15, 5), padx=5)
+            
+            # Group header
+            group_header = ctk.CTkLabel(
+                group_frame, 
+                text=group_name,
+                font=ctk.CTkFont(size=16, weight="bold"),
+                anchor="w"
+            )
+            group_header.pack(fill=tk.X, padx=10, pady=5)
+            
+            # Create grid frame for shortcuts in this group
+            shortcut_grid = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+            shortcut_grid.pack(fill=tk.X, pady=(0, 15), padx=5)
+            
+            # Add shortcuts to the grid
+            for i, shortcut in enumerate(shortcuts):
+                col = i % self.grid_columns
+                row = i // self.grid_columns
+                
+                # Create shortcut button
+                button_color = self.get_button_color(shortcut["category"])
+                hover_color = self.get_hover_color(shortcut["category"])
+                
+                shortcut_button = ctk.CTkButton(
+                    shortcut_grid,
+                    text=shortcut["label"],
+                    command=lambda p=shortcut["path"], c=shortcut["category"]: self.open_shortcut(p, c),
+                    width=150,
+                    height=40,
+                    fg_color=button_color,
+                    hover_color=hover_color
+                )
+                shortcut_button.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            
+            # Configure grid weights to make columns equal width
+            for i in range(self.grid_columns):
+                shortcut_grid.grid_columnconfigure(i, weight=1)
+    
+    def get_button_color(self, category):
+        """Get button color based on category"""
+        if category == "Apps":
+            return self.theme_manager.get_color("app_button")
+        elif category == "Folders":
+            return self.theme_manager.get_color("folder_button")
+        elif category == "Web":
+            return self.theme_manager.get_color("web_button")
+        return self.theme_manager.get_color("button")
+    
+    def get_hover_color(self, category):
+        """Get button hover color based on category"""
+        if category == "Apps":
+            return self.theme_manager.get_color("app_hover")
+        elif category == "Folders":
+            return self.theme_manager.get_color("folder_hover")
+        elif category == "Web":
+            return self.theme_manager.get_color("web_hover")
+        return self.theme_manager.get_color("button_hover")
     
     def on_close(self):
-        """Handle window close event."""
-        # Save window size
-        self.json_handler.update_setting("window_size", [self.winfo_width(), self.winfo_height()])
+        """Handle window close event"""
+        # Save current window size
+        self.settings["window_width"] = self.root.winfo_width()
+        self.settings["window_height"] = self.root.winfo_height()
+        self.json_handler.save_settings(self.settings)
         
         # Close the window
-        self.destroy()
+        self.root.destroy()
     
-    @staticmethod
-    def darken_color(hex_color, factor=0.8):
-        """
-        Darken a hex color by a factor.
-        
-        Args:
-            hex_color (str): Hex color code (e.g., "#3a7ebf").
-            factor (float): Factor to darken by (0-1).
-        
-        Returns:
-            str: Darkened hex color.
-        """
-        # Remove '#' if present
-        hex_color = hex_color.lstrip('#')
-        
-        # Convert to RGB
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-        
-        # Darken
-        r = int(r * factor)
-        g = int(g * factor)
-        b = int(b * factor)
-        
-        # Convert back to hex
-        return f"#{r:02x}{g:02x}{b:02x}"
+    def run(self):
+        """Run the application"""
+        self.root.mainloop()

@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+"""
+WinDrawer - A lightweight, offline Windows app launcher
+"""
 
-"""
-WinDrawer - Main entry point script.
-Run this file to start the application.
-"""
+import sys
+import os
 from drawer.main import main
 
 if __name__ == "__main__":

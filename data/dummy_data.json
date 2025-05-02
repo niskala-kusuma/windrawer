@@ -1,106 +1,64 @@
 {
-  "shortcuts": [
-    {
-      "label": "Chrome",
-      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Notepad",
-      "path": "C:/Windows/System32/notepad.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Calculator",
-      "path": "C:/Windows/System32/calc.exe",
-      "category": "Tools"
-    },
-    {
-      "label": "Documents",
-      "path": "C:/Users/User/Documents",
-      "category": "Folders"
-    },
-    {
-      "label": "GitHub",
-      "path": "https://github.com",
-      "category": "Web"
-    },
-    {
-      "label": "Google",
-      "path": "https://google.com",
-      "category": "Web"
-    },
-    {
-      "label": "Chrome",
-      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Notepad",
-      "path": "C:/Windows/System32/notepad.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Calculator",
-      "path": "C:/Windows/System32/calc.exe",
-      "category": "Tools"
-    },
-    {
-      "label": "Documents",
-      "path": "C:/Users/User/Documents",
-      "category": "Folders"
-    },
-    {
-      "label": "GitHub",
-      "path": "https://github.com",
-      "category": "Web"
-    },
-    {
-      "label": "Google",
-      "path": "https://google.com",
-      "category": "Web"
-    },
-    {
-      "label": "Chrome",
-      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Notepad",
-      "path": "C:/Windows/System32/notepad.exe",
-      "category": "Apps"
-    },
-    {
-      "label": "Calculator",
-      "path": "C:/Windows/System32/calc.exe",
-      "category": "Tools"
-    },
-    {
-      "label": "Documents",
-      "path": "C:/Users/User/Documents",
-      "category": "Folders"
-    },
-    {
-      "label": "GitHub",
-      "path": "https://github.com",
-      "category": "Web"
-    },
-    {
-      "label": "Google",
-      "path": "https://google.com",
-      "category": "Web"
+    "shortcuts": [
+      {
+        "label": "Notepad",
+        "path": "C:/Windows/System32/notepad.exe",
+        "category": "Apps",
+        "group": "Editors"
+      },
+      {
+        "label": "Calculator",
+        "path": "C:/Windows/System32/calc.exe",
+        "category": "Apps",
+        "group": "Utilities"
+      },
+      {
+        "label": "Paint",
+        "path": "C:/Windows/System32/mspaint.exe",
+        "category": "Apps",
+        "group": "Editors"
+      },
+      {
+        "label": "Documents",
+        "path": "C:/Users/USER/Documents",
+        "category": "Folders",
+        "group": "System Folders"
+      },
+      {
+        "label": "Downloads",
+        "path": "C:/Users/USER/Downloads",
+        "category": "Folders",
+        "group": "System Folders"
+      },
+      {
+        "label": "Google",
+        "path": "https://www.google.com",
+        "category": "Web",
+        "group": "Search"
+      },
+      {
+        "label": "GitHub",
+        "path": "https://github.com",
+        "category": "Web",
+        "group": "Development"
+      },
+      {
+        "label": "Twitter",
+        "path": "https://twitter.com",
+        "category": "Web",
+        "group": "Social Media"
+      },
+      {
+        "label": "Facebook",
+        "path": "https://facebook.com",
+        "category": "Web",
+        "group": "Social Media"
+      }
+    ],
+    "settings": {
+      "theme": "light",
+      "grid_columns": 4,
+      "window_width": 800,
+      "window_height": 600
     }
-  ],
-  "settings": {
-    "theme": "light",
-    "grid_size": [
-      3,
-      2
-    ],
-    "window_size": [
-      800,
-      600
-    ],
-    "startup_minimize": false
   }
-}

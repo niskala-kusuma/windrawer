@@ -1,84 +1,56 @@
-"""
-Theme management for WinDrawer application.
-Handles light and dark mode themes using CustomTkinter.
-"""
 import customtkinter as ctk
 
-
 class ThemeManager:
-    """Manages application theme (light/dark mode)."""
+    """Manage application themes."""
     
-    # Theme constants
-    LIGHT = "light"
-    DARK = "dark"
-    
-    # Theme color mappings
-    THEME_COLORS = {
-        LIGHT: {
-            "bg_color": "#f0f0f0",
+    # Theme colors
+    THEMES = {
+        "light": {
+            "bg_color": "#F5F5F5",
             "fg_color": "#333333",
-            "button_color": "#e0e0e0",
-            "button_hover_color": "#d1d1d1",
-            "button_text_color": "#333333",
-            "accent_color": "#3a7ebf"
+            "button": "#4A6572",
+            "button_hover": "#344955",
+            "app_button": "#4CAF50",
+            "app_hover": "#388E3C",
+            "folder_button": "#FFC107",
+            "folder_hover": "#FFA000",
+            "web_button": "#2196F3",
+            "web_hover": "#1976D2",
+            "cancel_button": "#F44336",
+            "cancel_hover": "#D32F2F"
         },
-        DARK: {
-            "bg_color": "#242424",
-            "fg_color": "#e0e0e0",
-            "button_color": "#3a3a3a",
-            "button_hover_color": "#4a4a4a",
-            "button_text_color": "#e0e0e0",
-            "accent_color": "#4f9ee8"
+        "dark": {
+            "bg_color": "#202020",
+            "fg_color": "#FFFFFF",
+            "button": "#4A6572",
+            "button_hover": "#344955",
+            "app_button": "#388E3C",
+            "app_hover": "#2E7D32",
+            "folder_button": "#FFA000",
+            "folder_hover": "#FF8F00",
+            "web_button": "#1976D2",
+            "web_hover": "#1565C0",
+            "cancel_button": "#D32F2F",
+            "cancel_hover": "#C62828"
         }
     }
     
-    def __init__(self, json_handler):
-        """
-        Initialize the theme manager.
-        
-        Args:
-            json_handler (JSONHandler): Instance of JSONHandler to save/load theme settings.
-        """
-        self.json_handler = json_handler
-        self.current_theme = self.json_handler.get_settings().get("theme", self.LIGHT)
-        
-        # Set the initial theme for CustomTkinter
-        self._apply_theme()
+    def __init__(self):
+        """Initialize the theme manager with the default theme."""
+        self.current_theme = "light"
     
-    def _apply_theme(self):
-        """Apply the current theme to CustomTkinter."""
-        if self.current_theme == self.DARK:
-            ctk.set_appearance_mode("dark")
-        else:
-            ctk.set_appearance_mode("light")
-        
-        # Set the default color theme
-        ctk.set_default_color_theme("blue")
+    def set_theme(self, theme_name):
+        """Set the application theme."""
+        if theme_name in self.THEMES:
+            self.current_theme = theme_name
+            # Apply theme to CustomTkinter
+            ctk.set_appearance_mode("light" if theme_name == "light" else "dark")
+            ctk.set_default_color_theme("blue")
     
-    def toggle_theme(self):
-        """Toggle between light and dark themes."""
-        self.current_theme = self.DARK if self.current_theme == self.LIGHT else self.LIGHT
-        self.json_handler.update_setting("theme", self.current_theme)
-        self._apply_theme()
-        return self.current_theme
+    def get_color(self, color_name):
+        """Get a color from the current theme."""
+        return self.THEMES[self.current_theme].get(color_name, "#000000")
     
     def get_current_theme(self):
-        """
-        Get the current theme name.
-        
-        Returns:
-            str: Current theme name (LIGHT or DARK).
-        """
+        """Get the current theme name."""
         return self.current_theme
-    
-    def get_color(self, color_key):
-        """
-        Get a specific color value for the current theme.
-        
-        Args:
-            color_key (str): Key for the color.
-        
-        Returns:
-            str: Color hex value.
-        """
-        return self.THEME_COLORS[self.current_theme].get(color_key)
