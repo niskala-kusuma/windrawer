@@ -47,6 +47,18 @@
       "path": "https://google.com",
       "category": "Web",
       "group": "development"
+    },
+    {
+      "label": "qwen",
+      "path": "https://qwen.ai",
+      "category": "Web",
+      "group": "Development"
+    },
+    {
+      "label": "grok",
+      "path": "grok.ai",
+      "category": "Apps",
+      "group": "Development"
     }
   ],
   "settings": {

@@ -1,56 +1,124 @@
-WinDrawer
-A lightweight, offline Windows app launcher written in Python with CustomTkinter.
+# WinDrawer
 
-Overview
-WinDrawer allows users to organize shortcuts (apps, folders, and URLs) in a grid-based layout. The application is designed to be minimal and fast while maintaining a modern look.
+A lightweight, offline Windows app launcher written in Python with [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter).
 
-Features
-Light/Dark Mode: Toggle between light and dark themes
-Grid Layout: Display shortcuts in a customizable grid
-Multiple Shortcut Types: Support for applications, folders, and web URLs
-Persistent Settings: Save user preferences and shortcut data
-Installation
-Clone this repository
-Install dependencies:
+---
+
+## 🚀 Overview
+
+**WinDrawer** helps users organize shortcuts to applications, folders, and web URLs in a sleek, minimal interface. Designed to be lightweight and fast, it aims to provide a modern, persistent launcher that stays out of the way—perfect for productivity-focused users.
+
+---
+
+## ✨ Features
+
+- 🎨 **Light/Dark Mode** – Seamlessly toggle between modern light and dark themes
+- 🧩 **Grid Layout** – Organize shortcuts in a responsive and customizable grid
+- 🔗 **Multiple Shortcut Types** – Supports EXE files, folders, and website links
+- 💾 **Persistent Settings** – Remembers user preferences and shortcuts
+- 🧱 **Modular Design** – Cleanly separated UI, logic, and data layers
+- 🔌 **Pluggable Architecture** *(future-ready)* – Designed with plugin support in mind
+
+---
+
+## 🧰 Installation
+
+1. **Clone this repository**
+```bash
+git clone https://github.com/your-username/windrawer.git
+cd windrawer
+```
+2. **Install dependencies**
+
+```bash
 pip install -r requirements.txt
-Run the application:
-python run_windrawer.py
-Project Structure
-WinDrawer/
-├── assets/                  # All static files (icons, images, etc.)
-├── backups/                 # Backup files (for storing user data like shortcuts)
-├── drawer/                  # Core logic of the application
-│   ├── __init__.py          # Initialization file for the main drawer logic
-│   ├── ui/                  # All UI-related files
-│   │   ├── __init__.py      # UI logic initialization
-│   │   ├── app.py           # Main application window setup
-│   │   ├── theme.py         # Theme management (light/dark mode)
-│   ├── logic/               # Core application logic
-│   │   ├── __init__.py      # Logic initialization
-│   │   ├── shortcuts.py     # Logic to manage shortcut data
-│   │   ├── backup_restore.py# Backup and restore logic
-│   │   ├── json_handler.py  # Handling JSON data
-│   ├── tray/                # Logic for system tray
-│   │   ├── __init__.py      # Tray icon setup
-│   │   ├── tray_icon.py     # Code for tray icon functionality
-│   └── main.py              # Entry point of the application
-├── data/                    # Stores JSON files for shortcuts & settings
-│   └── dummy_data.json      # Placeholder file for shortcuts
-├── requirements.txt         # List of dependencies
-├── run_windrawer.py         # Entry point script
-└── README.md                # Project overview and instructions
-Dependencies
-CustomTkinter: Modern UI widgets for tkinter
-Pillow: Image processing
-pystray: System tray functionality
-PyInstaller: Creates standalone executables
-Building Executable
-To create a standalone executable:
+```
 
+3. **Run the app**
+
+```bash
+python run_windrawer.py
+```
+
+
+---
+
+
+## 🗂 Project Structure
+```bash
+WinDrawer/
+├── assets/                  # Static assets (icons, images, etc.)
+├── backups/                 # Backup files (user shortcut data, settings)
+├── drawer/                 
+│   ├── __init__.py
+│   ├── ui/                  # UI Layer
+│   │   ├── __init__.py
+│   │   ├── app.py           # Main window setup
+│   │   ├── theme.py         # Theme switching logic
+│   ├── logic/               # Core application logic
+│   │   ├── __init__.py
+│   │   ├── shortcuts.py     # Shortcut management
+│   │   ├── backup_restore.py# Backup/restore logic
+│   │   ├── json_handler.py  # JSON handling logic
+│   ├── tray/
+│   │   ├── __init__.py
+│   │   ├── tray_icon.py     # System tray functionality
+│   └── main.py              # Internal entry point
+├── data/                    # JSON config and shortcut data
+│   └── dummy_data.json      # Dummy shortcut entries
+├── requirements.txt         # Python dependency list
+├── run_windrawer.py         # Main script to run the app
+└── README.md                # You're reading it
+```
+
+---
+
+## 📦 Dependencies
+
+CustomTkinter – Modern UI components for Tkinter
+Pillow – Image handling
+pystray – System tray integration
+PyInstaller – Create distributable EXE files
+Install them all with:
+
+```bash
+pip install -r requirements.txt
+```
+
+## 🏗 Building Executable
+To package the app into a single EXE:
+
+```bash
 pyinstaller --onefile --windowed --icon=assets/icon.ico run_windrawer.py
-Development
-Next Steps
-Implement system tray functionality
-Add ability to add, edit, and delete shortcuts
-Implement backup and restore functionality
-Create a proper executable with PyInstaller
+```
+This will create a dist/ folder with your executable.
+
+## 🛠 Development Roadmap
+✅ Light/Dark theme support
+
+✅ Grid-based shortcut layout
+
+✅ Persistent local storage for shortcuts and settings
+
+🔜 Backup and Restore user data
+
+🔜 Add/Edit/Delete shortcut dialog
+
+🔜 Minimize to system tray
+
+🔜 Plugin architecture for community-contributed extensions
+
+🔜 Settings: persistent across sessions
+
+## 🤝 Contribution
+We're planning to open plugin support so contributors can expand WinDrawer's functionality. Stay tuned for guidelines and plugin API!
+
+## 📄 License
+This project is licensed under the MIT License.
+
+
+
+
+
+
+

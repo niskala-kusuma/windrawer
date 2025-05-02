@@ -49,6 +49,11 @@ class AppWindow:
         self.scrollable_frame.bind("<Configure>", self.on_frame_configure)
         self.canvas.bind("<Configure>", self.on_canvas_configure)
         
+        # Bind mouse wheel events to the canvas for scrolling
+        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)  # Windows
+        self.canvas.bind_all("<Button-4>", self.on_mousewheel)    # Linux scroll up
+        self.canvas.bind_all("<Button-5>", self.on_mousewheel)    # Linux scroll down
+        
         # Create header frame
         self.header_frame = ctk.CTkFrame(self.scrollable_frame)
         self.header_frame.pack(fill=tk.X, padx=10, pady=10)
@@ -121,9 +126,26 @@ class AppWindow:
         
         # Group input
         ctk.CTkLabel(self.add_form_frame, text="Group:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
-        self.group_entry = ctk.CTkEntry(self.add_form_frame, width=200)
-        self.group_entry.insert(0, "Default")
-        self.group_entry.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+        
+        # Create a frame for the group selection with both dropdown and entry
+        self.group_frame = ctk.CTkFrame(self.add_form_frame, fg_color="transparent")
+        self.group_frame.grid(row=4, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+        
+        # Group dropdown
+        self.group_var = ctk.StringVar(value="Default")
+        self.groups = ["Default", "Add New Group..."]  # Will be populated with actual groups
+        self.group_dropdown = ctk.CTkOptionMenu(
+            self.group_frame,
+            values=self.groups,
+            variable=self.group_var,
+            width=200,
+            command=self.on_group_select
+        )
+        self.group_dropdown.pack(side=tk.LEFT)
+        
+        # Group entry (initially hidden)
+        self.group_entry = ctk.CTkEntry(self.group_frame, width=200)
+        self.group_entry_visible = False
         
         # Form buttons
         self.form_buttons_frame = ctk.CTkFrame(self.add_form_frame, fg_color="transparent")
@@ -164,6 +186,18 @@ class AppWindow:
     def on_canvas_configure(self, event):
         """Resize the canvas window when the canvas changes size"""
         self.canvas.itemconfig(self.canvas_frame, width=event.width)
+        
+    def on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        delta = 0
+        
+        # Handle different event types based on platform
+        if event.num == 5 or event.delta < 0:  # Scroll down
+            delta = 1
+        elif event.num == 4 or event.delta > 0:  # Scroll up
+            delta = -1
+            
+        self.canvas.yview_scroll(delta, "units")
     
     def toggle_add_shortcut_form(self):
         """Show or hide the add shortcut form"""
@@ -172,6 +206,8 @@ class AppWindow:
             self.content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
             self.add_form_visible = False
             self.add_button.configure(text="Add Shortcut")
+            # Hide group entry if visible
+            self.hide_group_entry()
         else:
             self.content_frame.pack_forget()
             self.add_form_frame.pack(fill=tk.X, padx=10, pady=10, after=self.header_frame)
@@ -179,12 +215,42 @@ class AppWindow:
             self.add_form_visible = True
             self.add_button.configure(text="Close Form")
             
+            # Update the group dropdown with current groups
+            self.update_group_dropdown()
+            
             # Clear form fields
             self.label_entry.delete(0, tk.END)
             self.path_entry.delete(0, tk.END)
             self.category_var.set("Apps")
+            self.group_var.set("Default")
+            
+    def update_group_dropdown(self):
+        """Update the group dropdown with current groups"""
+        groups = self.json_handler.get_unique_groups()
+        self.groups = groups + ["Add New Group..."]
+        self.group_dropdown.configure(values=self.groups)
+        self.group_var.set(groups[0] if groups else "Default")
+        
+    def on_group_select(self, choice):
+        """Handle selection from the group dropdown"""
+        if choice == "Add New Group...":
+            self.show_group_entry()
+        else:
+            self.hide_group_entry()
+            
+    def show_group_entry(self):
+        """Show the group entry field"""
+        if not self.group_entry_visible:
             self.group_entry.delete(0, tk.END)
-            self.group_entry.insert(0, "Default")
+            self.group_entry.pack(side=tk.LEFT, padx=(5, 0))
+            self.group_entry_visible = True
+            self.group_entry.focus()
+            
+    def hide_group_entry(self):
+        """Hide the group entry field"""
+        if self.group_entry_visible:
+            self.group_entry.pack_forget()
+            self.group_entry_visible = False
     
     def browse_path(self):
         """Open file or folder browser"""
@@ -209,7 +275,17 @@ class AppWindow:
         label = self.label_entry.get().strip()
         path = self.path_entry.get().strip()
         category = self.category_var.get()
-        group = self.group_entry.get().strip() or "Default"
+        
+        # Get group value
+        if self.group_entry_visible:
+            group = self.group_entry.get().strip()
+            if not group:
+                messagebox.showerror("Error", "Group name cannot be empty")
+                return
+        else:
+            group = self.group_var.get()
+            if group == "Add New Group...":  # Shouldn't happen but just in case
+                group = "Default"
         
         # Validation
         if not label:
