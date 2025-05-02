@@ -1,0 +1,23 @@
+{
+  "name": "windrawer",
+  "version": "1.0.0",
+  "description": "organize shortcuts (apps, folders, and URLs) in a grid-based layout",
+  "keywords": [
+    "windrawer"
+  ],
+  "homepage": "https://github.com/niskala-kusuma/windrawer#readme",
+  "bugs": {
+    "url": "https://github.com/niskala-kusuma/windrawer/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niskala-kusuma/windrawer.git"
+  },
+  "license": "MIT",
+  "author": "niskala",
+  "type": "python",
+  "main": "run_windrawer.py",
+  "scripts": {
+    "test": "python run_windrawer.py"
+  }
+}

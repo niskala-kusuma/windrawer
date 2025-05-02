@@ -1,0 +1,106 @@
+{
+  "shortcuts": [
+    {
+      "label": "Chrome",
+      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Notepad",
+      "path": "C:/Windows/System32/notepad.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Calculator",
+      "path": "C:/Windows/System32/calc.exe",
+      "category": "Tools"
+    },
+    {
+      "label": "Documents",
+      "path": "C:/Users/User/Documents",
+      "category": "Folders"
+    },
+    {
+      "label": "GitHub",
+      "path": "https://github.com",
+      "category": "Web"
+    },
+    {
+      "label": "Google",
+      "path": "https://google.com",
+      "category": "Web"
+    },
+    {
+      "label": "Chrome",
+      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Notepad",
+      "path": "C:/Windows/System32/notepad.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Calculator",
+      "path": "C:/Windows/System32/calc.exe",
+      "category": "Tools"
+    },
+    {
+      "label": "Documents",
+      "path": "C:/Users/User/Documents",
+      "category": "Folders"
+    },
+    {
+      "label": "GitHub",
+      "path": "https://github.com",
+      "category": "Web"
+    },
+    {
+      "label": "Google",
+      "path": "https://google.com",
+      "category": "Web"
+    },
+    {
+      "label": "Chrome",
+      "path": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Notepad",
+      "path": "C:/Windows/System32/notepad.exe",
+      "category": "Apps"
+    },
+    {
+      "label": "Calculator",
+      "path": "C:/Windows/System32/calc.exe",
+      "category": "Tools"
+    },
+    {
+      "label": "Documents",
+      "path": "C:/Users/User/Documents",
+      "category": "Folders"
+    },
+    {
+      "label": "GitHub",
+      "path": "https://github.com",
+      "category": "Web"
+    },
+    {
+      "label": "Google",
+      "path": "https://google.com",
+      "category": "Web"
+    }
+  ],
+  "settings": {
+    "theme": "light",
+    "grid_size": [
+      3,
+      2
+    ],
+    "window_size": [
+      800,
+      600
+    ],
+    "startup_minimize": false
+  }
+}
